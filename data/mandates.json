@@ -1,0 +1,35 @@
+[
+  {
+    "mandate_id": "MND-1001",
+    "customer_name": "Aarav Sharma",
+    "amount": 2499.00,
+    "due_date": "2026-08-28",
+    "failure_reason": "Insufficient Funds",
+    "attempt_count": 2,
+    "status": "Pending Retry",
+    "recommended_retry_window": "Salary Cycle (1st of Month, 10:00 AM)",
+    "draft_nudge_message": "Hi Aarav, your subscription payment of ₹2,499 failed due to balance limits. We will re-attempt on Sep 1st. Tap here to pay now."
+  },
+  {
+    "mandate_id": "MND-1002",
+    "customer_name": "Priya Patel",
+    "amount": 799.00,
+    "due_date": "2026-08-30",
+    "failure_reason": "Bank Server Timeout / Technical Error",
+    "attempt_count": 1,
+    "status": "Auto-Scheduled",
+    "recommended_retry_window": "Immediate Low-Traffic Window (T+12 hrs, 11:30 PM)",
+    "draft_nudge_message": "Hi Priya, your payment of ₹799 faced a temporary bank issue. We will automatically retry tonight at 11:30 PM. No action needed."
+  },
+  {
+    "mandate_id": "MND-1003",
+    "customer_name": "Rohan Gupta",
+    "amount": 15000.00,
+    "due_date": "2026-08-25",
+    "failure_reason": "Customer Cancelled / Mandate Revoked",
+    "attempt_count": 3,
+    "status": "Stopped (Rule Limit Exceeded)",
+    "recommended_retry_window": "Do Not Retry (Requires Re-authorization)",
+    "draft_nudge_message": "Hi Rohan, your auto-debit of ₹15,000 was stopped. Please re-authenticate your UPI mandate to keep services active."
+  }
+]
