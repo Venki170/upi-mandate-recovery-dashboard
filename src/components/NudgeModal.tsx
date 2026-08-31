@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { X, Copy, Check, Send, MessageSquare, User, Hash } from 'lucide-react';
-import type { Mandate } from '@/types';
+import type { MandateWithRetry } from '@/types';
 import { formatINR, formatDate } from '@/lib/format';
 
 interface NudgeModalProps {
-  mandate: Mandate;
+  mandate: MandateWithRetry;
   onClose: () => void;
-  onSend: (mandate: Mandate) => void;
+  onSend: (mandate: MandateWithRetry) => void;
 }
 
 export default function NudgeModal({ mandate, onClose, onSend }: NudgeModalProps) {
@@ -106,7 +106,7 @@ export default function NudgeModal({ mandate, onClose, onSend }: NudgeModalProps
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span className="font-medium">Retry window:</span>
             <span className="text-slate-700 dark:text-slate-300">
-              {mandate.recommended_retry_window}
+              {mandate.retryTimeDisplay}
             </span>
           </div>
         </div>

@@ -10,18 +10,18 @@ import {
   ChevronUp,
   Loader2,
 } from 'lucide-react';
-import type { Mandate, StatusFilter } from '@/types';
+import type { MandateWithRetry, StatusFilter } from '@/types';
 import { formatINR, formatDate } from '@/lib/format';
 import StatusBadge from './StatusBadge';
 
 interface MandatesTableProps {
-  mandates: Mandate[];
+  mandates: MandateWithRetry[];
   statusFilter: StatusFilter;
   onStatusFilterChange: (s: StatusFilter) => void;
   search: string;
   onSearchChange: (s: string) => void;
-  onSendNudge: (m: Mandate) => void;
-  onTriggerRetry: (m: Mandate) => void;
+  onSendNudge: (m: MandateWithRetry) => void;
+  onTriggerRetry: (m: MandateWithRetry) => void;
   retryingId: string | null;
 }
 
@@ -97,8 +97,8 @@ export default function MandatesTable({
             {mandates.map((m) => {
               const isExpanded = expandedId === m.id;
               const isRetrying = retryingId === m.id;
-              const isStopped = m.status === 'Stopped';
-              const isProcessing = m.status === 'Processing';
+              const isStopped = m.effectiveStatus === 'Stopped';
+              const isProcessing = m.effectiveStatus === 'Processing';
               return (
                 <>
                   <tr
@@ -133,7 +133,7 @@ export default function MandatesTable({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={m.status} />
+                      <StatusBadge status={m.effectiveStatus} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
@@ -194,10 +194,23 @@ export default function MandatesTable({
                               <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
                               <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                                  Recommended Retry Window
+                                  Recommended Retry Time
                                 </p>
                                 <p className="text-sm text-slate-700 dark:text-slate-200">
-                                  {m.recommended_retry_window}
+                                  {m.retryTimeDisplay}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+                                <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                  Rule Applied
+                                </p>
+                                <p className="text-sm text-slate-700 dark:text-slate-200">
+                                  {m.ruleApplied}
                                 </p>
                               </div>
                             </div>

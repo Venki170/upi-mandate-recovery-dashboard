@@ -22,6 +22,12 @@ export interface Mandate {
   updated_at: string;
 }
 
+export interface MandateWithRetry extends Mandate {
+  effectiveStatus: MandateStatus;
+  retryTimeDisplay: string;
+  ruleApplied: string;
+}
+
 export interface AuditEntry {
   id: string;
   mandate_id: string | null;
