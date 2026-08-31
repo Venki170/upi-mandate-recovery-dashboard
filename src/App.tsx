@@ -8,7 +8,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { Mandate, MandateWithRetry, AuditEntry, StatusFilter, MandateStatus } from '@/types';
+import type { Mandate, MandateWithRetry, AuditEntry, AuditLogEntry, StatusFilter, MandateStatus } from '@/types';
 import { useTheme } from '@/hooks/useTheme';
 import { formatINR } from '@/lib/format';
 import { getRetryDecision, getRetryDecisionForAttempt } from '@/lib/retry';
@@ -55,6 +55,14 @@ export default function App() {
   const [nudgeTarget, setNudgeTarget] = useState<MandateWithRetry | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+
+  const addAuditLog = useCallback((entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
+    setAuditLogs((cur) => [
+      { ...entry, id: crypto.randomUUID(), timestamp: new Date().toISOString() },
+      ...cur,
+    ]);
+  }, []);
 
   const addToast = useCallback((t: Omit<ToastData, 'id'>) => {
     setToasts((cur) => [...cur, { ...t, id: crypto.randomUUID() }]);
@@ -150,6 +158,11 @@ export default function App() {
   const handleTriggerRetry = useCallback(
     async (mandate: MandateWithRetry) => {
       setRetryingId(mandate.id);
+      addAuditLog({
+        mandate_id: mandate.mandate_id,
+        decision: 'Manual Retry',
+        reason: 'User triggered manual retry',
+      });
       setMandates((cur) =>
         cur.map((m) =>
           m.id === mandate.id ? { ...m, status: 'Processing' as MandateStatus } : m,
@@ -292,7 +305,7 @@ export default function App() {
           </div>
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-20 lg:h-[calc(100vh-7rem)]">
-              <AuditLog entries={auditLog} />
+              <AuditLog entries={auditLogs} />
             </div>
           </div>
         </div>
@@ -313,6 +326,7 @@ export default function App() {
           mandate={nudgeTarget}
           onClose={() => setNudgeTarget(null)}
           onSend={handleSendNudge}
+          addAuditLog={addAuditLog}
         />
       )}
 

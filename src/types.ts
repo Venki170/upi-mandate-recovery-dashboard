@@ -40,4 +40,12 @@ export interface AuditEntry {
   created_at: string;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  mandate_id: string;
+  decision: string;
+  reason: string;
+  timestamp: string;
+}
+
 export type StatusFilter = 'All' | MandateStatus;

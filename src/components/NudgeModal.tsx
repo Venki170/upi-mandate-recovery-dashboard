@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Copy, Check, Send, MessageSquare, User, Hash, Sparkles, Loader2, AlertCircle, Clock } from 'lucide-react';
-import type { MandateWithRetry } from '@/types';
+import type { MandateWithRetry, AuditLogEntry } from '@/types';
 import { formatINR } from '@/lib/format';
 import { generateLiveNudge, type LiveNudgeResult } from '@/utils/aiService';
 
@@ -8,9 +8,10 @@ interface NudgeModalProps {
   mandate: MandateWithRetry;
   onClose: () => void;
   onSend: (mandate: MandateWithRetry) => void;
+  addAuditLog: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
 }
 
-export default function NudgeModal({ mandate, onClose, onSend }: NudgeModalProps) {
+export default function NudgeModal({ mandate, onClose, onSend, addAuditLog }: NudgeModalProps) {
   const [copied, setCopied] = useState(false);
   const [sent, setSent] = useState(false);
   const [drafting, setDrafting] = useState(false);
@@ -25,6 +26,11 @@ export default function NudgeModal({ mandate, onClose, onSend }: NudgeModalProps
     try {
       await navigator.clipboard.writeText(displayMessage);
       setCopied(true);
+      addAuditLog({
+        mandate_id: mandate.mandate_id,
+        decision: 'Customer Nudged',
+        reason: 'Nudge message copied to clipboard',
+      });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard may be blocked; ignore
@@ -50,6 +56,11 @@ export default function NudgeModal({ mandate, onClose, onSend }: NudgeModalProps
 
   const handleSend = () => {
     setSent(true);
+    addAuditLog({
+      mandate_id: mandate.mandate_id,
+      decision: 'Customer Nudged',
+      reason: 'Nudge message sent to customer',
+    });
     onSend(mandate);
     setTimeout(onClose, 900);
   };

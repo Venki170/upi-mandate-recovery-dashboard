@@ -8,20 +8,20 @@ import {
   Bell,
   Clock,
 } from 'lucide-react';
-import type { AuditEntry } from '@/types';
-import { formatINR, timeAgo } from '@/lib/format';
+import type { AuditLogEntry } from '@/types';
+import { timeAgo } from '@/lib/format';
 
 interface AuditLogProps {
-  entries: AuditEntry[];
+  entries: AuditLogEntry[];
 }
 
-function iconForAction(action: string) {
-  if (action.includes('Retry')) return { Icon: RefreshCw, color: 'text-brand-500', wrap: 'bg-brand-100 dark:bg-brand-500/15' };
-  if (action.includes('Nudge')) return { Icon: Send, color: 'text-amber-500', wrap: 'bg-amber-100 dark:bg-amber-500/15' };
-  if (action.includes('Hard Stop') || action.includes('Stop')) return { Icon: Ban, color: 'text-rose-500', wrap: 'bg-rose-100 dark:bg-rose-500/15' };
-  if (action.includes('Success') || action.includes('Recovery')) return { Icon: CheckCircle2, color: 'text-emerald-500', wrap: 'bg-emerald-100 dark:bg-emerald-500/15' };
-  if (action.includes('Failure')) return { Icon: XCircle, color: 'text-rose-500', wrap: 'bg-rose-100 dark:bg-rose-500/15' };
-  if (action.includes('Auto')) return { Icon: Clock, color: 'text-brand-500', wrap: 'bg-brand-100 dark:bg-brand-500/15' };
+function iconForDecision(decision: string) {
+  if (decision.includes('Retry')) return { Icon: RefreshCw, color: 'text-brand-500', wrap: 'bg-brand-100 dark:bg-brand-500/15' };
+  if (decision.includes('Nudge')) return { Icon: Send, color: 'text-amber-500', wrap: 'bg-amber-100 dark:bg-amber-500/15' };
+  if (decision.includes('Hard Stop') || decision.includes('Stop')) return { Icon: Ban, color: 'text-rose-500', wrap: 'bg-rose-100 dark:bg-rose-500/15' };
+  if (decision.includes('Success') || decision.includes('Recovery')) return { Icon: CheckCircle2, color: 'text-emerald-500', wrap: 'bg-emerald-100 dark:bg-emerald-500/15' };
+  if (decision.includes('Failure')) return { Icon: XCircle, color: 'text-rose-500', wrap: 'bg-rose-100 dark:bg-rose-500/15' };
+  if (decision.includes('Auto')) return { Icon: Clock, color: 'text-brand-500', wrap: 'bg-brand-100 dark:bg-brand-500/15' };
   return { Icon: Bell, color: 'text-slate-500', wrap: 'bg-slate-100 dark:bg-slate-700' };
 }
 
@@ -37,10 +37,10 @@ export default function AuditLog({ entries }: AuditLogProps) {
       </div>
       <div className="flex-1 space-y-1 overflow-y-auto p-3">
         {entries.length === 0 && (
-          <p className="px-2 py-8 text-center text-sm text-slate-400">No activity yet.</p>
+          <p className="px-2 py-8 text-center text-sm text-slate-400">No recent activity</p>
         )}
         {entries.map((e) => {
-          const { Icon, color, wrap } = iconForAction(e.action);
+          const { Icon, color, wrap } = iconForDecision(e.decision);
           return (
             <div
               key={e.id}
@@ -52,37 +52,15 @@ export default function AuditLog({ entries }: AuditLogProps) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
-                    {e.action}
+                    {e.decision}
                   </p>
-                  <span className="shrink-0 text-[11px] text-slate-400">{timeAgo(e.created_at)}</span>
+                  <span className="shrink-0 text-[11px] text-slate-400">{timeAgo(e.timestamp)}</span>
                 </div>
                 <p className="mt-0.5 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
-                  {e.detail}
+                  {e.reason}
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  {e.customer_name && (
-                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                      {e.customer_name}
-                    </span>
-                  )}
-                  {e.mandate_id && (
-                    <span className="font-mono text-[11px] text-slate-400">{e.mandate_id}</span>
-                  )}
-                  {e.amount != null && (
-                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                      {formatINR(Number(e.amount))}
-                    </span>
-                  )}
-                  {e.success === true && (
-                    <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                      <CheckCircle2 className="h-2.5 w-2.5" /> Success
-                    </span>
-                  )}
-                  {e.success === false && (
-                    <span className="inline-flex items-center gap-0.5 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 dark:bg-rose-500/15 dark:text-rose-400">
-                      <XCircle className="h-2.5 w-2.5" /> Failed
-                    </span>
-                  )}
+                  <span className="font-mono text-[11px] text-slate-400">{e.mandate_id}</span>
                 </div>
               </div>
             </div>
