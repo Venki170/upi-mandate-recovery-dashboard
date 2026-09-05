@@ -35,7 +35,7 @@ export function processRetryLogic(mandate: MandateRecord): RetryDecision {
   }
 
   // 3. Calculate the base recovery time based on the specific error
-  let nextRetry = new Date(mandate.timestamp);
+  const nextRetry = new Date(mandate.timestamp);
   let ruleMessage = "";
 
   if (mandate.failure_reason.includes("Timeout") || mandate.failure_reason.includes("Technical Error")) {

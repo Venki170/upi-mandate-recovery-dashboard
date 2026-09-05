@@ -1,3 +1,6 @@
+import Papa from 'papaparse';
+import { useRef } from 'react';
+import { UploadCloud } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
@@ -48,7 +51,7 @@ function toMandateWithRetry(m: Mandate): MandateWithRetry {
 export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [mandates, setMandates] = useState<Mandate[]>([]);
-  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+  const [, setAuditLog] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [search, setSearch] = useState('');
@@ -56,6 +59,7 @@ export default function App() {
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addAuditLog = useCallback((entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
     setAuditLogs((cur) => [
@@ -63,6 +67,44 @@ export default function App() {
       ...cur,
     ]);
   }, []);
+
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data as Record<string, string>[];
+        const now = new Date().toISOString();
+        const parsedData: Mandate[] = rows.map((row) => ({
+          id: crypto.randomUUID(),
+          mandate_id: row.mandate_id,
+          customer_name: row.customer_name,
+          amount: parseFloat(row.amount),
+          due_date: row.timestamp || now,
+          failure_reason: row.failure_reason,
+          attempt_count: parseInt(row.attempt_count, 10),
+          status: 'Pending Retry',
+          recovered: false,
+          recommended_retry_window: row.recommended_retry_window,
+          draft_nudge_message: row.draft_nudge_message,
+          last_retry_at: null,
+          created_at: row.timestamp || now,
+          updated_at: row.timestamp || now,
+        }));
+
+        setMandates(parsedData);
+
+        addAuditLog({
+          mandate_id: "SYS-CSV",
+          decision: "Data Imported",
+          reason: `Loaded ${parsedData.length} mandates from CSV`
+        });
+      }
+    });
+  }, [addAuditLog]);
 
   const addToast = useCallback((t: Omit<ToastData, 'id'>) => {
     setToasts((cur) => [...cur, { ...t, id: crypto.randomUUID() }]);
@@ -243,12 +285,29 @@ export default function App() {
         setRetryingId(null);
       }, 1800);
     },
-    [addToast, insertAudit],
+    [addAuditLog, addToast, insertAudit],
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <Header theme={theme} onToggleTheme={toggleTheme} />
+    <>
+      <div className="mx-auto max-w-7xl px-4 pt-4 flex justify-end">
+        <input 
+          type="file" 
+          accept=".csv" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          className="hidden" 
+        />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+        >
+          <UploadCloud size={18} />
+          Upload CSV
+        </button>
+      </div>
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        <Header theme={theme} onToggleTheme={toggleTheme} />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* KPI cards */}
@@ -318,24 +377,25 @@ export default function App() {
             should be reviewed before sending to customers.
           </p>
         </div>
-      </main>
+        </main>
 
-      {/* Nudge modal */}
-      {nudgeTarget && (
-        <NudgeModal
-          mandate={nudgeTarget}
-          onClose={() => setNudgeTarget(null)}
-          onSend={handleSendNudge}
-          addAuditLog={addAuditLog}
-        />
-      )}
+        {/* Nudge modal */}
+        {nudgeTarget && (
+          <NudgeModal
+            mandate={nudgeTarget}
+            onClose={() => setNudgeTarget(null)}
+            onSend={handleSendNudge}
+            addAuditLog={addAuditLog}
+          />
+        )}
 
-      {/* Toasts */}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-        {toasts.map((t) => (
-          <Toast key={t.id} toast={t} onClose={closeToast} />
-        ))}
+        {/* Toasts */}
+        <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          {toasts.map((t) => (
+            <Toast key={t.id} toast={t} onClose={closeToast} />
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
